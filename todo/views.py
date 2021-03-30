@@ -1,8 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.contrib.auth import login, logout, authenticate
+from . forms import TodoForm
+from . models import Todo
+from django.utils import timezone
 
 
 def home(request):
@@ -47,4 +50,48 @@ def logoutuser(request):
 
 
 def currenttodos(request):
-    return render(request, 'todo/currenttodos.html')
+    todos = Todo.objects.filter(user=request.user, completed__isnull=True)
+    return render(request, 'todo/currenttodos.html', {'todos': todos})
+
+
+def createtodos(request):
+    if request.method == "GET":
+        return render(request, 'todo/createtodos.html', {'form': TodoForm()})
+    else:
+        form = TodoForm(request.POST)
+        newtodo = form.save(commit=False)
+        newtodo.user = request.user
+        newtodo.save()
+        return redirect('currenttodos')
+
+
+def viewtodo(request, todo_pk):
+    todo = get_object_or_404(Todo, pk=todo_pk, user=request.user)
+    if request.method == "GET":
+        form = TodoForm(instance=todo)
+        return render(request, 'todo/viewtodo.html', {'todo': todo, 'form': form})
+    else:
+        form = TodoForm(request.POST, instance=todo)
+        form.save()
+        return redirect('currenttodos')
+
+
+def completetodo(request, todo_pk):
+    todo = get_object_or_404(Todo, pk=todo_pk, user=request.user)
+    if request.method == "POST":
+        todo.completed = timezone.now()
+        todo.save()
+        return redirect('currenttodos')
+
+
+def deletetodo(request, todo_pk):
+    todo = get_object_or_404(Todo, pk=todo_pk, user=request.user)
+    if request.method == "POST":
+        todo.delete()
+        return redirect('currenttodos')
+
+
+def completedtodos(request):
+    todos = Todo.objects.filter(
+        user=request.user, completed__isnull=False).order_by('-completed')
+    return render(request, 'todo/completedtodos.html', {'todos': todos})
