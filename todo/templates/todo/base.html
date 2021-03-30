@@ -4,6 +4,9 @@ Logged in as {{user.username}}
         {% csrf_token %}
         <button type="submit">Logout</button>
     </form>
+    <a href="{% url 'createtodos' %}">Create</a>
+    <a href="{% url 'currenttodos' %}">Todos</a>
+    <a href="{% url 'completedtodos' %}">Completed</a>
 {% else %}
 <a href="{% url 'loginuser' %}">Login</a>
 <a href="{% url 'signupuser' %}">Sign Up</a>
