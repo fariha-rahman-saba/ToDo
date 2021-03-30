@@ -57,9 +57,9 @@ def currenttodos(request):
 
 
 @login_required
-def createtodos(request):
+def createtodo(request):
     if request.method == "GET":
-        return render(request, 'todo/createtodos.html', {'form': TodoForm()})
+        return render(request, 'todo/createtodo.html', {'form': TodoForm()})
     else:
         form = TodoForm(request.POST)
         newtodo = form.save(commit=False)
